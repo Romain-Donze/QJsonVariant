@@ -1,6 +1,5 @@
 
-cmake_minimum_required(VERSION 3.16)
-
 project(tests)
 
-# TODO
+add_subdirectory(cbor)
+add_subdirectory(json)
