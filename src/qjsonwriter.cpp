@@ -38,6 +38,8 @@ static inline QByteArray escapedString(const QString& s)
         }
     }
 
+    escaped.squeeze();
+
     return escaped;
 }
 static inline void stringToJson(const QString &string, QIODevice *d)
@@ -227,6 +229,8 @@ QByteArray QtJson::Writer::variantToJson(const QVariant& variant, bool compact)
         }
     }
 
+    json.squeeze();
+
     return json;
 }
 
@@ -249,6 +253,5 @@ void QtJson::Writer::variantToJsonStream(const QVariant& variant, QIODevice* dev
             break;
         }
     }
-
 }
 
