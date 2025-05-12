@@ -93,6 +93,9 @@ QByteArray QtCbor::Writer::variantToCbor(const QVariant& variant, int opt)
     QByteArray cbor;
     QCborStreamWriter writer(&cbor);
     ::variantToCbor(variant, writer, opt);
+
+    cbor.squeeze();
+
     return cbor;
 }
 
