@@ -17,6 +17,8 @@ QVariantList arrayFromCbor(QCborStreamReader &reader)
     if (reader.lastError() == QCborError::NoError)
         reader.leaveContainer();
 
+    list.squeeze();
+
     return list;
 }
 
