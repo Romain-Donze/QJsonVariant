@@ -11,7 +11,6 @@ public:
     using QObject::QObject;
 
 private slots:
-
     void initTestCase();
     void cleanupTestCase();
 
