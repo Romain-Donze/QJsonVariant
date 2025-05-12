@@ -184,6 +184,7 @@ static QVariantList parseJsonArray(const char* &ptr, const char* end)
             skipWhitespace(ptr, end);
         }
     }
+    list.squeeze();
     if (*ptr == ']') ++ptr;
     return list;
 }
