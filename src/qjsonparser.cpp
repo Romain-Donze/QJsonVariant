@@ -8,25 +8,6 @@ constexpr inline bool isAsciiDigit(char32_t c) noexcept
     return c >= '0' && c <= '9';
 }
 
-/*
-begin-array     = ws %x5B ws  ; [ left square bracket
-begin-object    = ws %x7B ws  ; { left curly bracket
-end-array       = ws %x5D ws  ; ] right square bracket
-end-object      = ws %x7D ws  ; } right curly bracket
-name-separator  = ws %x3A ws  ; : colon
-value-separator = ws %x2C ws  ; , comma
-
-Insignificant whitespace is allowed before or after any of the six
-structural characters.
-
-ws = *(
-          %x20 /              ; Space
-          %x09 /              ; Horizontal tab
-          %x0A /              ; Line feed or New line
-          %x0D                ; Carriage return
-      )
-*/
-
 enum {
     Space = 0x20,
     Tab = 0x09,
@@ -99,7 +80,6 @@ static inline QString unescapedString(const QByteArray& ba)
                 decoded.append('u');
                 break;
             default:
-                decoded.append('\\');
                 decoded.append(*src);
                 break;
             }
