@@ -34,29 +34,6 @@ static inline void variantValueToCbor(const QVariant &value, QCborStreamWriter &
     case QMetaType::QString:
         writer.append(value.toString());
         break;
-    case QMetaType::Bool:
-        writer.append(value.toBool());
-        break;
-    case QMetaType::Short:
-    case QMetaType::UShort:
-    case QMetaType::Int:
-    case QMetaType::LongLong:
-    case QMetaType::Long:
-    case QMetaType::UInt:
-        writer.append(value.toLongLong());
-        break;
-    case QMetaType::ULong:
-    case QMetaType::ULongLong:
-        if (value.toULongLong() <= static_cast<uint64_t>(std::numeric_limits<qint64>::max())) {
-            writer.append(value.toULongLong());
-            break;
-        }
-        Q_FALLTHROUGH();
-    case QMetaType::Float16:
-    case QMetaType::Float:
-    case QMetaType::Double:
-        QCborValue(value.toDouble()).toCbor(writer, (QCborValue::EncodingOptions)opt);
-        break;
     default:
         QCborValue::fromVariant(value).toCbor(writer, (QCborValue::EncodingOptions)opt);
         break;

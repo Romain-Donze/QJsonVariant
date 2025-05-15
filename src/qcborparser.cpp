@@ -4,7 +4,7 @@
 
 static QVariant variantFromCbor(QCborStreamReader &reader);
 
-QVariantList arrayFromCbor(QCborStreamReader &reader)
+static QVariantList arrayFromCbor(QCborStreamReader &reader)
 {
     QVariantList list;
     if (reader.isLengthKnown())
@@ -22,7 +22,7 @@ QVariantList arrayFromCbor(QCborStreamReader &reader)
     return list;
 }
 
-QVariantMap objectFromCbor(QCborStreamReader &reader)
+static QVariantMap objectFromCbor(QCborStreamReader &reader)
 {
     QVariantMap map;
     // if (reader.isLengthKnown())
@@ -39,50 +39,9 @@ QVariantMap objectFromCbor(QCborStreamReader &reader)
     return map;
 }
 
-QVariant variantValueFromCbor(QCborStreamReader &reader)
+static QVariant variantValueFromCbor(QCborStreamReader &reader)
 {
     switch (reader.type()) {
-    case QCborStreamReader::UnsignedInteger: {
-        quint64 num = reader.toUnsignedInteger();
-        reader.next();
-        return std::move(num);
-    }
-    case QCborStreamReader::NegativeInteger: {
-        qint64 num = reader.toInteger();
-        reader.next();
-        return std::move(num);
-    }
-    case QCborStreamReader::Float16: {
-        float num = reader.toFloat16();
-        reader.next();
-        return std::move(num);
-    }
-    case QCborStreamReader::Float: {
-        float num = reader.toFloat();
-        reader.next();
-        return std::move(num);
-    }
-    case QCborStreamReader::Double: {
-        double num = reader.toDouble();
-        reader.next();
-        return std::move(num);
-    }
-    case QCborStreamReader::SimpleType: {
-        QCborSimpleType t = reader.toSimpleType();
-        reader.next();
-        switch (t) {
-        case QCborSimpleType::False:
-            return false;
-        case QCborSimpleType::True:
-            return true;
-        case QCborSimpleType::Null:
-            return QVariant::fromValue(nullptr);
-        case QCborSimpleType::Undefined:
-        default:
-            return QVariant();
-        }
-        break;
-    }
     case QCborStreamReader::ByteArray:
         return reader.readAllByteArray();
     case QCborStreamReader::String:
@@ -109,22 +68,10 @@ QVariant QtCbor::Parser::cborToVariant(const QByteArray& cbor, QCborParserError*
 {
     QCborStreamReader reader(cbor);
     return variantFromCbor(reader);
-
-    const QCborValue cVal = QCborValue::fromCbor(reader);
-    if (error) {
-        error->error = reader.lastError();
-        error->offset = reader.currentOffset();
-    }
-    return cVal.toVariant();
 }
 
 QVariant QtCbor::Parser::cborStreamToVariant(QIODevice* device, QCborParserError* error)
 {
     QCborStreamReader reader(device);
-    const QCborValue cVal = QCborValue::fromCbor(reader);
-    if (error) {
-        error->error = reader.lastError();
-        error->offset = reader.currentOffset();
-    }
-    return cVal.toVariant();
+    return variantFromCbor(reader);
 }

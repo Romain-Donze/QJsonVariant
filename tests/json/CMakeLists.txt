@@ -23,6 +23,7 @@ qt_add_resources(json json_resource_files
         test2.json
         test3.json
         test4.json
+        benchmark.json
 )
 
 target_link_libraries(json PRIVATE Qt${QT_VERSION_MAJOR}::Test)

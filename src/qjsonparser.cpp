@@ -51,6 +51,7 @@ static inline bool skipWhitespace(const char* &ptr, const char* end)
 static inline QString unescapedString(const QByteArray& ba)
 {
     QByteArray decoded;
+    decoded.reserve(ba.size());
     const char* src = ba.constData();
     const char* end = src + ba.size();
 
@@ -88,6 +89,8 @@ static inline QString unescapedString(const QByteArray& ba)
         }
         ++src;
     }
+
+    decoded.squeeze();
 
     return QString::fromUtf8(decoded);
 }
@@ -212,7 +215,7 @@ static QVariantMap parseJsonObject(const char* &ptr, const char* end)
     return map;
 }
 
-static QVariant parseJsonValue(const char* &ptr, const char* end)
+QVariant parseJsonValue(const char* &ptr, const char* end)
 {
     skipWhitespace(ptr, end);
     if (ptr >= end) return QVariant();
@@ -264,7 +267,7 @@ static QVariant parseJsonValue(const char* &ptr, const char* end)
     }
 }
 
-QVariant parseJson(const QByteArray &json)
+static QVariant parseJson(const QByteArray &json)
 {
     const char* ptr = json.constData();
     const char* end = ptr + json.size();

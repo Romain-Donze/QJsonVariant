@@ -20,6 +20,9 @@ private slots:
     void parsing_data();
     void parsing();
 
+    void benchmark_data();
+    void benchmark();
+
 private:
     QVariant m_testVariant;
 };
@@ -39,6 +42,7 @@ void TestCbor::initTestCase()
     map.insert("double", 3.14159);
     map.insert("string", "Hello world");
     map.insert("ztring", "Texte spécial: é, 中文, 😊, et \"guillemets\"");
+    map.insert("emoji", "😊");
     map.insert("stringEsc", QString("Hello \"world\" \n \u263A"));
     map.insert("array", QVariantList{1, "two", false, QVariant(), 3.5});
     map.insert("object", QVariantMap{
@@ -75,13 +79,6 @@ void TestCbor::writing()
     QFETCH(QVariant, variant);
     QFETCH(int, options);
 
-    QBENCHMARK {
-        QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
-    }
-    QBENCHMARK {
-        QtCbor::Writer::variantToCbor(variant, options);
-    }
-
     QByteArray expected = QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
     QByteArray result = QtCbor::Writer::variantToCbor(variant, options);
 
@@ -104,6 +101,43 @@ void TestCbor::parsing()
 
     QByteArray cbor = QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
 
+    QVariant expected = QCborValue::fromCbor(cbor).toVariant();
+    QVariant result = QtCbor::Parser::cborToVariant(cbor);
+
+    QCOMPARE(result, expected);
+}
+
+void TestCbor::benchmark_data()
+{
+    QTest::addColumn<QVariant>("variant");
+    QTest::addColumn<int>("options");
+
+    QVariantList variants;
+    for(int i=0;i<10000;i++)
+        variants.append(m_testVariant);
+
+    QTest::newRow("parsing default") << QVariant(variants) << 0;
+    QTest::newRow("parsing float16") << QVariant(variants) << (int)QCborValue::UseFloat16;
+}
+
+void TestCbor::benchmark()
+{
+    QFETCH(QVariant, variant);
+    QFETCH(int, options);
+
+    QCborValue value = QCborValue::fromVariant(variant);
+    QByteArray cbor = value.toCbor((QCborValue::EncodingOptions)options);
+
+    QBENCHMARK {
+        QCborValue::fromCbor(cbor);
+    }
+    QBENCHMARK {
+        value.toVariant();
+    }
+    QBENCHMARK {
+        value.toCbor((QCborValue::EncodingOptions)options);
+    }
+
     QBENCHMARK {
         QCborValue::fromCbor(cbor).toVariant();
     }
@@ -111,10 +145,12 @@ void TestCbor::parsing()
         QtCbor::Parser::cborToVariant(cbor);
     }
 
-    QVariant expected = QCborValue::fromCbor(cbor).toVariant();
-    QVariant result = QtCbor::Parser::cborToVariant(cbor);
-
-    QCOMPARE(result, expected);
+    QBENCHMARK {
+        QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
+    }
+    QBENCHMARK {
+        QtCbor::Writer::variantToCbor(variant, options);
+    }
 }
 
 QTEST_APPLESS_MAIN(TestCbor)

@@ -26,6 +26,9 @@ private slots:
     void fileWriter_data();
     void fileWriter();
 
+    void benchmark_data();
+    void benchmark();
+
 private:
     QVariant m_testVariant;
 };
@@ -45,6 +48,7 @@ void TestJson::initTestCase()
     map.insert("double", 3.14159);
     map.insert("string", "Hello world");
     map.insert("ztring", "Texte spécial: é, 中文, 😊, et \"guillemets\"");
+    map.insert("emoji", "😊");
     map.insert("stringEsc", QString("Hello \"world\" \n \u263A"));
     map.insert("array", QVariantList{1, "two", false, QVariant(), 3.5});
     map.insert("object", QVariantMap{
@@ -81,13 +85,6 @@ void TestJson::writing()
     QFETCH(QVariant, variant);
     QFETCH(bool, compact);
 
-    QBENCHMARK {
-        QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
-    }
-    QBENCHMARK {
-        QtJson::Writer::variantToJson(variant, compact);
-    }
-
     QByteArray expected = QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
     QByteArray result = QtJson::Writer::variantToJson(variant, compact);
 
@@ -109,13 +106,6 @@ void TestJson::parsing()
     QFETCH(bool, compact);
 
     QByteArray json = QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
-
-    QBENCHMARK {
-        QJsonDocument::fromJson(json).toVariant();
-    }
-    QBENCHMARK {
-        QtJson::Parser::jsonToVariant(json);
-    }
 
     QVariant expected = QJsonDocument::fromJson(json).toVariant();
     QVariant result = QtJson::Parser::jsonToVariant(json);
@@ -141,8 +131,7 @@ void TestJson::fileParser()
     file.open(QFile::ReadOnly);
     QByteArray json = file.readAll();
 
-    QJsonParseError error;
-    QVariant expected = QJsonDocument::fromJson(json, &error).toVariant();
+    QVariant expected = QJsonDocument::fromJson(json).toVariant();
     QVariant result = QtJson::Parser::jsonToVariant(json);
 
     QCOMPARE(result, expected);
@@ -171,12 +160,58 @@ void TestJson::fileWriter()
     QFile file(fileName);
     file.open(QFile::ReadOnly);
     QByteArray json = file.readAll();
-    QVariant variant = QJsonDocument::fromJson(json).toVariant();
+    QJsonDocument doc = QJsonDocument::fromJson(json);
+    QVariant variant = doc.toVariant();
 
-    QByteArray expected = QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
+    QByteArray expected = doc.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
     QByteArray result = QtJson::Writer::variantToJson(variant, compact);
 
     QCOMPARE(result, expected);
+}
+
+void TestJson::benchmark_data()
+{
+    QTest::addColumn<QString>("fileName");
+    QTest::addColumn<bool>("compact");
+
+    QTest::newRow(":/benchmark.json indented") << ":/benchmark.json" << false;
+    QTest::newRow(":/benchmark.json compact") << ":/benchmark.json" << true;
+}
+
+void TestJson::benchmark()
+{
+    QFETCH(QString, fileName);
+    QFETCH(bool, compact);
+
+    QFile file(fileName);
+    file.open(QFile::ReadOnly);
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    QVariant variant = doc.toVariant();
+    QByteArray json = doc.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
+
+    QBENCHMARK {
+        QJsonDocument::fromJson(json);
+    }
+    QBENCHMARK {
+        doc.toVariant();
+    }
+    QBENCHMARK {
+        doc.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
+    }
+
+    QBENCHMARK {
+        QJsonDocument::fromJson(json).toVariant();
+    }
+    QBENCHMARK {
+        QtJson::Parser::jsonToVariant(json);
+    }
+
+    QBENCHMARK {
+        QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
+    }
+    QBENCHMARK {
+        QtJson::Writer::variantToJson(variant, compact);
+    }
 }
 
 QTEST_APPLESS_MAIN(TestJson)
