@@ -1,7 +1,7 @@
 #include <QtTest>
 
-#include "qcborwriter.h"
-#include "qcborparser.h"
+#include "qcborvariantwriter.h"
+#include "qcborvariantreader.h"
 
 class TestCbor : public QObject
 {
@@ -80,7 +80,7 @@ void TestCbor::writing()
     QFETCH(int, options);
 
     QByteArray expected = QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
-    QByteArray result = QtCbor::Writer::variantToCbor(variant, options);
+    QByteArray result = QCborVariantWriter::fromVariant(variant, options);
 
     QCOMPARE(result, expected);
 }
@@ -102,7 +102,7 @@ void TestCbor::parsing()
     QByteArray cbor = QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
 
     QVariant expected = QCborValue::fromCbor(cbor).toVariant();
-    QVariant result = QtCbor::Parser::cborToVariant(cbor);
+    QVariant result = QCborVariantReader::fromCbor(cbor);
 
     QCOMPARE(result, expected);
 }
@@ -142,14 +142,14 @@ void TestCbor::benchmark()
         QCborValue::fromCbor(cbor).toVariant();
     }
     QBENCHMARK {
-        QtCbor::Parser::cborToVariant(cbor);
+        QCborVariantReader::fromCbor(cbor);
     }
 
     QBENCHMARK {
         QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
     }
     QBENCHMARK {
-        QtCbor::Writer::variantToCbor(variant, options);
+        QCborVariantWriter::fromVariant(variant, options);
     }
 }
 

@@ -12,10 +12,12 @@ endif()
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
 set(ALL_SRC_FILES
-    qcborparser.h qcborparser.cpp
-    qcborwriter.h qcborwriter.cpp
-    qjsonparser.h qjsonparser.cpp
-    qjsonwriter.h qjsonwriter.cpp
+    qutf8.h
+    qvariantreader.h qvariantreader.cpp
+    qcborvariantreader.h qcborvariantreader.cpp
+    qcborvariantwriter.h qcborvariantwriter.cpp
+    qjsonvariantreader.h qjsonvariantreader.cpp
+    qjsonvariantwriter.h qjsonvariantwriter.cpp
 )
 
 qt_add_library(${PROJECT_NAME}

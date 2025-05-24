@@ -1,7 +1,7 @@
 #include <QtTest>
 
-#include "qjsonwriter.h"
-#include "qjsonparser.h"
+#include "qjsonvariantwriter.h"
+#include "qjsonvariantreader.h"
 
 class TestJson : public QObject
 {
@@ -44,6 +44,7 @@ void TestJson::initTestCase()
     map.insert("zero", 0);
     map.insert("vide", "");
     map.insert("notValid", QVariant());
+    map.insert("bytearray", QByteArray("test utf8"));
     map.insert("datetime", QDateTime::currentDateTime());
     map.insert("double", 3.14159);
     map.insert("string", "Hello world");
@@ -86,7 +87,7 @@ void TestJson::writing()
     QFETCH(bool, compact);
 
     QByteArray expected = QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
-    QByteArray result = QtJson::Writer::variantToJson(variant, compact);
+    QByteArray result = QJsonVariantWriter::fromVariant(variant, compact);
 
     QCOMPARE(result, expected);
 }
@@ -108,7 +109,7 @@ void TestJson::parsing()
     QByteArray json = QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
 
     QVariant expected = QJsonDocument::fromJson(json).toVariant();
-    QVariant result = QtJson::Parser::jsonToVariant(json);
+    QVariant result = QJsonVariantReader::fromJson(json);
 
     QCOMPARE(result, expected);
 }
@@ -132,7 +133,7 @@ void TestJson::fileParser()
     QByteArray json = file.readAll();
 
     QVariant expected = QJsonDocument::fromJson(json).toVariant();
-    QVariant result = QtJson::Parser::jsonToVariant(json);
+    QVariant result = QJsonVariantReader::fromJson(json);
 
     QCOMPARE(result, expected);
 }
@@ -164,7 +165,7 @@ void TestJson::fileWriter()
     QVariant variant = doc.toVariant();
 
     QByteArray expected = doc.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
-    QByteArray result = QtJson::Writer::variantToJson(variant, compact);
+    QByteArray result = QJsonVariantWriter::fromVariant(variant, compact);
 
     QCOMPARE(result, expected);
 }
@@ -203,14 +204,14 @@ void TestJson::benchmark()
         QJsonDocument::fromJson(json).toVariant();
     }
     QBENCHMARK {
-        QtJson::Parser::jsonToVariant(json);
+        QJsonVariantReader::fromJson(json);
     }
 
     QBENCHMARK {
         QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
     }
     QBENCHMARK {
-        QtJson::Writer::variantToJson(variant, compact);
+        QJsonVariantWriter::fromVariant(variant, compact);
     }
 }
 

@@ -1,4 +1,5 @@
-#include "qcborparser.h"
-#include "qcborwriter.h"
-#include "qjsonparser.h"
-#include "qjsonwriter.h"
+#include "qcborvariantreader.h"
+#include "qcborvariantwriter.h"
+#include "qjsonvariantreader.h"
+#include "qjsonvariantwriter.h"
+
