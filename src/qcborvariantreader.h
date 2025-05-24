@@ -10,7 +10,7 @@ class QCborVariantReader: public QVariantReader
 public:
     explicit QCborVariantReader(QIODevice *device);
     explicit QCborVariantReader(const QByteArray &data);
-    ~QCborVariantReader();
+    virtual ~QCborVariantReader();
     Q_DISABLE_COPY(QCborVariantReader)
 
     int currentProgress() const final override;

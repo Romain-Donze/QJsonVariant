@@ -16,7 +16,7 @@ public:
     };
 
     QVariantReader() = default;
-    ~QVariantReader() = default;
+    virtual ~QVariantReader() = default;
 
     virtual int currentProgress() const = 0;
     virtual qint64 currentOffset() const = 0;

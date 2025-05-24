@@ -9,7 +9,7 @@ class QJsonVariantReader: public QVariantReader
 public:
     explicit QJsonVariantReader(QIODevice *device);
     explicit QJsonVariantReader(const QByteArray &data);
-    ~QJsonVariantReader();
+    virtual ~QJsonVariantReader();
     Q_DISABLE_COPY(QJsonVariantReader)
 
     int currentProgress() const final override;
