@@ -32,6 +32,8 @@ public:
 
     QJsonParseError::ParseError lastError() const { return m_lastError; }
     QJsonParseError error() const;
+    int errorCode() final override { return error().error; }
+    QString errorString() final override { return error().errorString(); }
 
     static QVariant fromJson(const QByteArray& json, QJsonParseError* error = nullptr);
     static QVariant fromJson(QIODevice* device, QJsonParseError* error = nullptr);

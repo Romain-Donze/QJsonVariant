@@ -33,6 +33,8 @@ public:
 
     QCborError lastError() const { return m_device->lastError(); }
     QCborParserError error() const;
+    int errorCode() final override { return error().error; }
+    QString errorString() final override { return error().errorString(); }
 
     static QVariant fromCbor(const QByteArray& cbor, QCborParserError* error = nullptr);
     static QVariant fromCbor(QIODevice* device, QCborParserError* error = nullptr);
