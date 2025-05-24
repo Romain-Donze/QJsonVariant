@@ -20,9 +20,6 @@ private slots:
     void parsing_data();
     void parsing();
 
-    void benchmark_data();
-    void benchmark();
-
 private:
     QVariant m_testVariant;
 };
@@ -105,52 +102,6 @@ void TestCbor::parsing()
     QVariant result = QCborVariantReader::fromCbor(cbor);
 
     QCOMPARE(result, expected);
-}
-
-void TestCbor::benchmark_data()
-{
-    QTest::addColumn<QVariant>("variant");
-    QTest::addColumn<int>("options");
-
-    QVariantList variants;
-    for(int i=0;i<10000;i++)
-        variants.append(m_testVariant);
-
-    QTest::newRow("parsing default") << QVariant(variants) << 0;
-    QTest::newRow("parsing float16") << QVariant(variants) << (int)QCborValue::UseFloat16;
-}
-
-void TestCbor::benchmark()
-{
-    QFETCH(QVariant, variant);
-    QFETCH(int, options);
-
-    QCborValue value = QCborValue::fromVariant(variant);
-    QByteArray cbor = value.toCbor((QCborValue::EncodingOptions)options);
-
-    QBENCHMARK {
-        QCborValue::fromCbor(cbor);
-    }
-    QBENCHMARK {
-        value.toVariant();
-    }
-    QBENCHMARK {
-        value.toCbor((QCborValue::EncodingOptions)options);
-    }
-
-    QBENCHMARK {
-        QCborValue::fromCbor(cbor).toVariant();
-    }
-    QBENCHMARK {
-        QCborVariantReader::fromCbor(cbor);
-    }
-
-    QBENCHMARK {
-        QCborValue::fromVariant(variant).toCbor((QCborValue::EncodingOptions)options);
-    }
-    QBENCHMARK {
-        QCborVariantWriter::fromVariant(variant, options);
-    }
 }
 
 QTEST_APPLESS_MAIN(TestCbor)

@@ -27,7 +27,7 @@ QVariantList QVariantReader::readList()
 
     list.squeeze();
 
-    return std::move(list);
+    return list;
 }
 QVariantMap QVariantReader::readMap()
 {
@@ -43,5 +43,5 @@ QVariantMap QVariantReader::readMap()
     if (!hasError())
         leaveContainer();
 
-    return std::move(map);
+    return map;
 }

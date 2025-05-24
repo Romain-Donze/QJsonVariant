@@ -20,10 +20,6 @@ QCborVariantReader::~QCborVariantReader()
     delete m_device;
 }
 
-int QCborVariantReader::currentProgress() const
-{
-    return (currentOffset()/double(m_size)) * 10000.0;
-}
 bool QCborVariantReader::atEnd()
 {
     return currentOffset() >= m_size;
@@ -61,7 +57,7 @@ QCborParserError QCborVariantReader::error() const
     QCborParserError error;
     error.error = lastError();
     error.offset = currentOffset();
-    return std::move(error);
+    return error;
 }
 
 QVariant QCborVariantReader::fromCbor(const QByteArray& cbor, QCborParserError* error)
@@ -70,7 +66,7 @@ QVariant QCborVariantReader::fromCbor(const QByteArray& cbor, QCborParserError* 
     QVariant variant = reader.read();
     if(error)
         *error = reader.error();
-    return std::move(variant);
+    return variant;
 }
 
 QVariant QCborVariantReader::fromCbor(QIODevice* device, QCborParserError* error)
@@ -79,5 +75,5 @@ QVariant QCborVariantReader::fromCbor(QIODevice* device, QCborParserError* error
     QVariant variant = reader.read();
     if(error)
         *error = reader.error();
-    return std::move(variant);
+    return variant;
 }

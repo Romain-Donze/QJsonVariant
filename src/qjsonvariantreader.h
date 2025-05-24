@@ -12,8 +12,8 @@ public:
     virtual ~QJsonVariantReader();
     Q_DISABLE_COPY(QJsonVariantReader)
 
-    int currentProgress() const final override;
     qint64 currentOffset() const final override { return ptr - json; }
+    qint64 totalSize() const final override { return m_buffer.size(); }
 
     bool hasError() final override { return lastError() != QJsonParseError::NoError; };
     bool hasNext() const final override;
@@ -42,9 +42,9 @@ private:
     inline QString parseString();
     inline QVariant parseNumber();
 
-    int nestingLevel;
     QJsonParseError::ParseError m_lastError;
 
+    QByteArray m_buffer;
     const char *json;
     const char *ptr;
     const char *end;

@@ -26,12 +26,12 @@ QJsonVariantReader::QJsonVariantReader(QIODevice *device):
 }
 
 QJsonVariantReader::QJsonVariantReader(const QByteArray &data):
-    ptr(data.constData()),
-    json(data.constData()),
-    nestingLevel(0),
-    m_lastError(QJsonParseError::NoError)
+    m_lastError(QJsonParseError::NoError),
+    m_buffer(data),
+    json(m_buffer.constData()),
+    ptr(m_buffer.constData()),
+    end(m_buffer.constData() + m_buffer.size())
 {
-    end = json + data.size();
     skipByteOrderMark();
     skipWhitespace();
 }
@@ -39,11 +39,6 @@ QJsonVariantReader::QJsonVariantReader(const QByteArray &data):
 QJsonVariantReader::~QJsonVariantReader()
 {
 
-}
-
-int QJsonVariantReader::currentProgress() const
-{
-    return (currentOffset()/double(end - json)) * 10000.0;
 }
 
 bool QJsonVariantReader::hasNext() const
@@ -303,7 +298,7 @@ QJsonParseError QJsonVariantReader::error() const
     QJsonParseError error;
     error.error = lastError();
     error.offset = currentOffset();
-    return std::move(error);
+    return error;
 }
 
 QVariant QJsonVariantReader::fromJson(const QByteArray& json, QJsonParseError* error)
@@ -312,7 +307,7 @@ QVariant QJsonVariantReader::fromJson(const QByteArray& json, QJsonParseError* e
     QVariant variant = reader.read();
     if(error)
         *error = reader.error();
-    return std::move(variant);
+    return variant;
 }
 
 QVariant QJsonVariantReader::fromJson(QIODevice* device, QJsonParseError* error)
@@ -321,5 +316,5 @@ QVariant QJsonVariantReader::fromJson(QIODevice* device, QJsonParseError* error)
     QVariant variant = reader.read();
     if(error)
         *error = reader.error();
-    return std::move(variant);
+    return variant;
 }

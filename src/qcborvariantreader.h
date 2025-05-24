@@ -13,8 +13,8 @@ public:
     virtual ~QCborVariantReader();
     Q_DISABLE_COPY(QCborVariantReader)
 
-    int currentProgress() const final override;
     qint64 currentOffset() const final override { return m_device->currentOffset(); }
+    qint64 totalSize() const final override { return m_size; }
 
     bool hasError() final override { return lastError() != QCborError::NoError; };
     bool hasNext() const final override { return m_device->hasNext(); }

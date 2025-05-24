@@ -3,6 +3,8 @@
 #include "qjsonvariantwriter.h"
 #include "qjsonvariantreader.h"
 
+#include "qcborvariantwriter.h"
+#include "qcborvariantreader.h"
 class TestJson : public QObject
 {
     Q_OBJECT
@@ -189,6 +191,8 @@ void TestJson::benchmark()
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     QVariant variant = doc.toVariant();
     QByteArray json = doc.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
+    QCborValue value = QCborValue::fromVariant(variant);
+    QByteArray cbor = value.toCbor(compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
 
     QBENCHMARK {
         QJsonDocument::fromJson(json);
@@ -201,10 +205,26 @@ void TestJson::benchmark()
     }
 
     QBENCHMARK {
+        QCborValue::fromCbor(cbor);
+    }
+    QBENCHMARK {
+        value.toVariant();
+    }
+    QBENCHMARK {
+        value.toCbor(compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
+    }
+
+    QBENCHMARK {
         QJsonDocument::fromJson(json).toVariant();
     }
     QBENCHMARK {
         QJsonVariantReader::fromJson(json);
+    }
+    QBENCHMARK {
+        QCborValue::fromCbor(cbor).toVariant();
+    }
+    QBENCHMARK {
+        QCborVariantReader::fromCbor(cbor);
     }
 
     QBENCHMARK {
@@ -212,6 +232,12 @@ void TestJson::benchmark()
     }
     QBENCHMARK {
         QJsonVariantWriter::fromVariant(variant, compact);
+    }
+    QBENCHMARK {
+        QCborValue::fromVariant(variant).toCbor(compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
+    }
+    QBENCHMARK {
+        QCborVariantWriter::fromVariant(variant, compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
     }
 }
 

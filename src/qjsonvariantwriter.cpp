@@ -223,7 +223,7 @@ void QJsonVariantWriter::writeValueSeparator()
 void QJsonVariantWriter::writeString(QStringView s)
 {
     m_device->write("\"");
-    m_device->write(escapedString(s));
+    m_device->write(QUtf8::escapedString(s));
     m_device->write("\"");
 }
 void QJsonVariantWriter::writeRaw(const char *data, qint64 len)
