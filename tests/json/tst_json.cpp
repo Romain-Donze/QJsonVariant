@@ -3,8 +3,6 @@
 #include "qjsonvariantwriter.h"
 #include "qjsonvariantreader.h"
 
-#include "qcborvariantwriter.h"
-#include "qcborvariantreader.h"
 class TestJson : public QObject
 {
     Q_OBJECT
@@ -27,9 +25,6 @@ private slots:
 
     void fileWriter_data();
     void fileWriter();
-
-    void benchmark_data();
-    void benchmark();
 
 private:
     QVariant m_testVariant;
@@ -170,75 +165,6 @@ void TestJson::fileWriter()
     QByteArray result = QJsonVariantWriter::fromVariant(variant, compact);
 
     QCOMPARE(result, expected);
-}
-
-void TestJson::benchmark_data()
-{
-    QTest::addColumn<QString>("fileName");
-    QTest::addColumn<bool>("compact");
-
-    QTest::newRow(":/benchmark.json indented") << ":/benchmark.json" << false;
-    QTest::newRow(":/benchmark.json compact") << ":/benchmark.json" << true;
-}
-
-void TestJson::benchmark()
-{
-    QFETCH(QString, fileName);
-    QFETCH(bool, compact);
-
-    QFile file(fileName);
-    file.open(QFile::ReadOnly);
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-    QVariant variant = doc.toVariant();
-    QByteArray json = doc.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
-    QCborValue value = QCborValue::fromVariant(variant);
-    QByteArray cbor = value.toCbor(compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
-
-    QBENCHMARK {
-        QJsonDocument::fromJson(json);
-    }
-    QBENCHMARK {
-        doc.toVariant();
-    }
-    QBENCHMARK {
-        doc.toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
-    }
-
-    QBENCHMARK {
-        QCborValue::fromCbor(cbor);
-    }
-    QBENCHMARK {
-        value.toVariant();
-    }
-    QBENCHMARK {
-        value.toCbor(compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
-    }
-
-    QBENCHMARK {
-        QJsonDocument::fromJson(json).toVariant();
-    }
-    QBENCHMARK {
-        QJsonVariantReader::fromJson(json);
-    }
-    QBENCHMARK {
-        QCborValue::fromCbor(cbor).toVariant();
-    }
-    QBENCHMARK {
-        QCborVariantReader::fromCbor(cbor);
-    }
-
-    QBENCHMARK {
-        QJsonDocument::fromVariant(variant).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
-    }
-    QBENCHMARK {
-        QJsonVariantWriter::fromVariant(variant, compact);
-    }
-    QBENCHMARK {
-        QCborValue::fromVariant(variant).toCbor(compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
-    }
-    QBENCHMARK {
-        QCborVariantWriter::fromVariant(variant, compact ? QCborValue::UseFloat16 : QCborValue::NoTransformation);
-    }
 }
 
 QTEST_APPLESS_MAIN(TestJson)
