@@ -1,38 +1,25 @@
 # QJsonVariant
 
-**QJsonVariant** is a lightweight JSON parser/writer designed to make working with JSON in Qt more intuitive with QVariant.
+**QJsonVariant** is a lightweight C++/Qt library for serializing and deserializing `QVariant` data using JSON and CBOR formats. It provides flexible readers and writers that allow structured parsing and generation of Qt types from and into human-readable or compact binary formats.
 
 ## ✨ Features
 
-- Seamless writing to JSON values from `QVariant` instead of `QJsonDocument`.
-- Seamless parsing from JSON values into `QVariant` instead of `QJsonDocument`.
-
-## 📚 Usage Examples
-
-### Creating from a JSON string
-
-```cpp
-QString json = R"({
-    "person": {
-        "name": "Alice",
-        "age": 30,
-        "hobbies": ["reading", "cycling"]
-    }
-})";
-
-QVariant variant = QtJson::Parser::jsonToVariant(json);
-
-QString name = variant.toMap().value("person").toMap().value("name").toString();
-int age = variant.toMap().value("person").toMap().value("age").toInt();
-QString secondHobby = variant.toMap().value("person").toMap().value("hobbies").toList().at(1).toString();
-```
+- Read/write `QVariant`, `QVariantList`, and `QVariantMap` from/to:
+  - **JSON** using `QJsonVariantReader` and `QJsonVariantWriter`
+  - **CBOR** using `QCborVariantReader` and `QCborVariantWriter`
+- High-performance, streaming-based readers and writers. (Faster than using `QJsonDocument::fromVariant::toJson` and/or `QJsonDocument::fromJson::toVariant`
+- Works directly with `QIODevice` and `QByteArray`.
+- Compact and readable JSON output modes.
+- Minimal dependencies — only requires Qt Core (Qt5 or Qt6).
 
 ## 🔧 Dependencies
 
-- Qt 5 or later
-- No third-party libraries
+- Qt 5.15+ or Qt 6.x
+- CMake 3.16 or newer
 
-## 🛠️ Integration
+## 📚 Getting Started
+
+### 🛠️ Integration
 
 1. Add the `.h` and `.cpp` files to your Qt project.
 2. Include the header in your source files:
@@ -41,7 +28,52 @@ QString secondHobby = variant.toMap().value("person").toMap().value("hobbies").t
 #include <QJsonVariant>
 ```
 
-3. Compile as usual using `qmake`, `cmake`, or other Qt build tools.
+### Reading JSON
+
+```cpp
+QByteArray json = R"({
+    "person": {
+        "name": "Alice",
+        "age": 30,
+        "hobbies": ["reading", "cycling"]
+    }
+})";
+
+QJsonParseError error;
+QVariant variant = QJsonVariantReader::fromJson(jsonData, &error);
+
+QString name = variant.toMap().value("person").toMap().value("name").toString();
+int age = variant.toMap().value("person").toMap().value("age").toInt();
+QString secondHobby = variant.toMap().value("person").toMap().value("hobbies").toList().at(1).toString();
+```
+
+### Writing JSON
+
+```cpp
+QVariantMap map;
+map["hello"] = "world";
+QByteArray json = QJsonVariantWriter::fromVariant(map, /*compact=*/true);
+```
+
+### Reading CBOR
+
+```cpp
+QFile file("data.cbor");
+if (file.open(QIODevice::ReadOnly)) {
+    QCborParserError error;
+    QVariant variant = QCborVariantReader::fromCbor(&file, &error);
+}
+```
+
+### Writing CBOR
+
+```cpp
+QVariantMap data;
+data["bool"] = true;
+data["list"] = QVariantList{1, 2, 3};
+
+QByteArray cbor = QCborVariantWriter::fromVariant(data);
+```
 
 ## 🧪 Testing
 
@@ -49,6 +81,7 @@ The library has been tested against the basics tests from Qt JSON library. It va
 
 - Basic and complex types (numbers, strings, booleans)
 - Arrays and nested objects
+- String escaping
 - Error handling
 
 ## 📄 License
