@@ -13,7 +13,7 @@ static inline uchar hexdig(uint u)
 {
     return (u < 0xa ? '0' + u : 'a' + u - 0xa);
 }
-static QByteArray escapedString(QStringView s)
+static inline QByteArray escapedString(QStringView s)
 {
     QByteArray ba(qMax(s.size(), 16), Qt::Uninitialized);
     auto ba_const_start = [&]() { return reinterpret_cast<const uchar *>(ba.constData()); };
