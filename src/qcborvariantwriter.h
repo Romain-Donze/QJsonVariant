@@ -21,7 +21,7 @@ public:
     void startMap(quint64 count);
     void endMap();
 
-    void writeKeyValue(const QString& key, const QVariant& value);
+    void writeKeyValue(QStringView key, const QVariant& value);
 
     void writeString(QStringView s);
     void writeRaw(const char *data, qint64 len);

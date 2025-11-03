@@ -114,7 +114,7 @@ void QCborVariantWriter::endMap()
     m_device->endMap();
 }
 
-void QCborVariantWriter::writeKeyValue(const QString& key, const QVariant& value)
+void QCborVariantWriter::writeKeyValue(QStringView key, const QVariant& value)
 {
     writeString(key);
     writeVariant(value);

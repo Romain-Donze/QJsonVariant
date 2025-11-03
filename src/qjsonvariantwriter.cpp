@@ -2,6 +2,7 @@
 #include <QBuffer>
 #include <QIODevice>
 #include <QLocale>
+#include <QJsonValue>
 
 #include "qutf8.h"
 

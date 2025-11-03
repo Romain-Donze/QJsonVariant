@@ -5,6 +5,7 @@ project(benchmark LANGUAGES CXX)
 enable_testing()
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Test)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test)
 
 set(CMAKE_AUTOUIC ON)
@@ -22,5 +23,6 @@ qt_add_resources(benchmark benchmark_resource_files
         benchmark.json
 )
 
+target_link_libraries(benchmark PRIVATE Qt${QT_VERSION_MAJOR}::Gui)
 target_link_libraries(benchmark PRIVATE Qt${QT_VERSION_MAJOR}::Test)
 target_link_libraries(benchmark PRIVATE QJsonVariant)
