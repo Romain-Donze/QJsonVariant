@@ -223,12 +223,12 @@ void TestBenchmark::QtCoreSerialization_data() const
                                                 serializeXml, deserializeXml };
     QTest::newRow("JSON") << SerializationFormat{
                                                  serializeJson, deserializeJson };
+    QTest::newRow("JSON Stream") << SerializationFormat{
+                                                        serializeJsonStream, deserializeJsonStream };
     QTest::newRow("CBOR") << SerializationFormat{
                                                  serializeCbor, deserializeCbor };
-    QTest::newRow("JSON Stream") << SerializationFormat{
-                                                 serializeJsonStream, deserializeJsonStream };
     QTest::newRow("CBOR Stream") << SerializationFormat{
-                                                 serializeCborStream, deserializeCborStream };
+                                                        serializeCborStream, deserializeCborStream };
 }
 void TestBenchmark::QtCoreSerialization()
 {
