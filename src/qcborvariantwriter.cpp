@@ -1,6 +1,8 @@
 #include "qcborvariantwriter.h"
 #include <QCborStreamWriter>
 #include <QCborValue>
+#include <QCborArray>
+#include <QCborMap>
 #include <QIODevice>
 
 static void variantToCbor(const QVariant &value, QCborStreamWriter &writer, int opt);
@@ -34,6 +36,32 @@ static inline void variantValueToCbor(const QVariant &value, QCborStreamWriter &
         break;
     case QMetaType::QString:
         writer.append(value.toString());
+        break;
+    case QMetaType::UnknownType:
+        writer.appendNull();
+        break;
+    case QMetaType::Nullptr:
+        writer.appendUndefined();
+        break;
+    case QMetaType::Bool:
+        writer.append(value.toBool());
+        break;
+    case QMetaType::Short:
+    case QMetaType::UShort:
+    case QMetaType::Int:
+    case QMetaType::LongLong:
+    case QMetaType::UInt:
+        writer.append(value.toLongLong());
+        break;
+    case QMetaType::ULongLong:
+        if (value.toULongLong() <= static_cast<uint64_t>(std::numeric_limits<qint64>::max())) {
+            writer.append(value.toLongLong());
+            break;
+        }
+        Q_FALLTHROUGH();
+    case QMetaType::Float:
+    case QMetaType::Double:
+        writer.append(value.toDouble());
         break;
     default:
         QCborValue::fromVariant(value).toCbor(writer, (QCborValue::EncodingOptions)opt);
@@ -85,6 +113,11 @@ QCborVariantWriter::~QCborVariantWriter()
     delete m_device;
 }
 
+QCborStreamWriter* QCborVariantWriter::device() const
+{
+    return m_device;
+}
+
 void QCborVariantWriter::start()
 {
     m_device->device()->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
@@ -114,15 +147,33 @@ void QCborVariantWriter::endMap()
     m_device->endMap();
 }
 
+void QCborVariantWriter::writeKeyValue(QLatin1StringView key, const QVariant& value)
+{
+    writeString(key);
+    writeVariant(value);
+}
 void QCborVariantWriter::writeKeyValue(QStringView key, const QVariant& value)
 {
     writeString(key);
     writeVariant(value);
 }
+void QCborVariantWriter::writeKeyValue(QUtf8StringView key, const QVariant& value)
+{
+    writeString(key);
+    writeVariant(value);
+}
 
+void QCborVariantWriter::writeString(QLatin1StringView s)
+{
+    m_device->append(s);
+}
 void QCborVariantWriter::writeString(QStringView s)
 {
     m_device->append(s);
+}
+void QCborVariantWriter::writeString(QUtf8StringView s)
+{
+    m_device->appendTextString(s.data(), s.size());
 }
 void QCborVariantWriter::writeRaw(const char *data, qint64 len)
 {

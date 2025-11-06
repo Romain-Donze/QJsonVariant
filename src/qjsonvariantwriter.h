@@ -19,11 +19,15 @@ public:
     void startMap();
     void endMap();
 
+    void writeKeyValue(QLatin1StringView key, const QVariant& value);
     void writeKeyValue(QStringView key, const QVariant& value);
+    void writeKeyValue(QUtf8StringView key, const QVariant& value);
     void writeNameSeparator();
     void writeValueSeparator();
 
+    void writeString(QLatin1StringView s);
     void writeString(QStringView s);
+    void writeString(QUtf8StringView s);
     void writeRaw(const char *data, qint64 len);
     void writeRaw(const char *data);
     void writeRaw(const QByteArray &ba);
@@ -41,6 +45,7 @@ private:
 
     bool m_compact;
     int m_indent;
+    int m_nestLevel;
 };
 
 #endif // QJSONVARIANTWRITER_H

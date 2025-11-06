@@ -104,6 +104,11 @@ QVariantReader::Type QJsonVariantReader::type() const
     }
 }
 
+QString QJsonVariantReader::readString()
+{
+    return parseString();
+}
+
 QVariant QJsonVariantReader::readValue()
 {
     if (ptr >= end) {

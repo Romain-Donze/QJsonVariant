@@ -10,10 +10,22 @@ Q_GLOBAL_STATIC_WITH_ARGS(bool, g_showType, (false))
 
 static void variantToJson(const QVariant &value, QIODevice *d, int indent, bool compact);
 
-static inline void stringToJson(const QString &string, QIODevice *d)
+static inline void stringToJson(QLatin1StringView string, QIODevice *d)
 {
     d->write("\"");
-    d->write(QUtf8::escapedString(string));
+    d->write(string.data(), string.size());
+    d->write("\"");
+}
+static inline void stringToJson(QStringView string, QIODevice *d)
+{
+    d->write("\"");
+    QUtf8::escapedString(d, string);
+    d->write("\"");
+}
+static inline void stringToJson(QUtf8StringView string, QIODevice *d)
+{
+    d->write("\"");
+    d->write(string.data(), string.size());
     d->write("\"");
 }
 
@@ -165,7 +177,8 @@ QJsonVariantWriter::QJsonVariantWriter(QIODevice *device, bool compact):
     m_device(device),
     m_deleteDevice(false),
     m_compact(compact),
-    m_indent(0)
+    m_indent(0),
+    m_nestLevel(0)
 {
     *g_showType = false;
 }
@@ -206,8 +219,23 @@ void QJsonVariantWriter::endMap()
     ::endMap(m_device, m_indent, m_compact);
 }
 
+void QJsonVariantWriter::writeKeyValue(QLatin1StringView key, const QVariant& value)
+{
+    // TODO: if is not first key/value pair -> writeValueSeparator
+    writeString(key);
+    writeNameSeparator();
+    writeVariant(value);
+}
 void QJsonVariantWriter::writeKeyValue(QStringView key, const QVariant& value)
 {
+    // TODO: if is not first key/value pair -> writeValueSeparator
+    writeString(key);
+    writeNameSeparator();
+    writeVariant(value);
+}
+void QJsonVariantWriter::writeKeyValue(QUtf8StringView key, const QVariant& value)
+{
+    // TODO: if is not first key/value pair -> writeValueSeparator
     writeString(key);
     writeNameSeparator();
     writeVariant(value);
@@ -221,11 +249,17 @@ void QJsonVariantWriter::writeValueSeparator()
     m_device->write(m_compact ? "," : ",\n");
 }
 
+void QJsonVariantWriter::writeString(QLatin1StringView s)
+{
+    ::stringToJson(s, m_device);
+}
 void QJsonVariantWriter::writeString(QStringView s)
 {
-    m_device->write("\"");
-    m_device->write(QUtf8::escapedString(s));
-    m_device->write("\"");
+    ::stringToJson(s, m_device);
+}
+void QJsonVariantWriter::writeString(QUtf8StringView s)
+{
+    ::stringToJson(s, m_device);
 }
 void QJsonVariantWriter::writeRaw(const char *data, qint64 len)
 {
@@ -241,6 +275,7 @@ void QJsonVariantWriter::writeRaw(const QByteArray &data)
 }
 void QJsonVariantWriter::writeVariant(const QVariant &v)
 {
+    // TODO: if is not first value in list -> writeValueSeparator
     ::variantToJson(v, m_device, m_indent, m_compact);
 }
 

@@ -37,7 +37,7 @@ QVariantMap QVariantReader::readMap()
 
     enterContainer();
     while (!hasError() && hasNext()) {
-        QString key = read().toString();
+        QString key = readString();
         map.insert(std::move(key), read());
     }
     if (!hasError())

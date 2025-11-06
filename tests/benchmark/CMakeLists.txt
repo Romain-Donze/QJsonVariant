@@ -26,3 +26,8 @@ qt_add_resources(benchmark benchmark_resource_files
 target_link_libraries(benchmark PRIVATE Qt${QT_VERSION_MAJOR}::Gui)
 target_link_libraries(benchmark PRIVATE Qt${QT_VERSION_MAJOR}::Test)
 target_link_libraries(benchmark PRIVATE QJsonVariant)
+
+install(TARGETS benchmark
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)

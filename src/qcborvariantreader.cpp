@@ -20,6 +20,11 @@ QCborVariantReader::~QCborVariantReader()
     delete m_device;
 }
 
+QCborStreamReader* QCborVariantReader::device() const
+{
+    return m_device;
+}
+
 bool QCborVariantReader::atEnd()
 {
     return currentOffset() >= m_size;
@@ -38,6 +43,14 @@ QVariantReader::Type QCborVariantReader::type() const
         return QVariantReader::Value;
         break;
     }
+}
+
+QString QCborVariantReader::readString()
+{
+    QString key = m_device->readString().data;
+    m_device->next();
+    return key;
+    // return m_device->readAllString();
 }
 
 QVariant QCborVariantReader::readValue()

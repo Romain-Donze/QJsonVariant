@@ -28,6 +28,7 @@ public:
     bool enterContainer() final override;
     bool leaveContainer() final override;
 
+    QString readString() final override;
     QVariant readValue() final override;
 
     QJsonParseError::ParseError lastError() const { return m_lastError; }

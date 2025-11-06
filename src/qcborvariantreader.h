@@ -13,6 +13,8 @@ public:
     virtual ~QCborVariantReader();
     Q_DISABLE_COPY(QCborVariantReader)
 
+    QCborStreamReader* device() const;
+
     qint64 currentOffset() const final override { return m_device->currentOffset(); }
     qint64 totalSize() const final override { return m_size; }
 
@@ -29,7 +31,8 @@ public:
     bool enterContainer() final override { return m_device->enterContainer(); }
     bool leaveContainer() final override { return m_device->leaveContainer(); }
 
-    QVariant readValue() final override ;
+    QString readString() final override;
+    QVariant readValue() final override;
 
     QCborError lastError() const { return m_device->lastError(); }
     QCborParserError error() const;

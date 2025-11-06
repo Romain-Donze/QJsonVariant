@@ -44,6 +44,7 @@ public:
     QVariant read();
     QVariantList readList();
     QVariantMap readMap();
+    virtual QString readString() = 0;
     virtual QVariant readValue() = 0;
 
     virtual int errorCode() = 0;

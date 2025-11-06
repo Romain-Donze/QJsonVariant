@@ -13,6 +13,8 @@ public:
     ~QCborVariantWriter();
     Q_DISABLE_COPY(QCborVariantWriter)
 
+    QCborStreamWriter* device() const;
+
     void start();
     void startArray();
     void startArray(quint64 count);
@@ -21,9 +23,13 @@ public:
     void startMap(quint64 count);
     void endMap();
 
+    void writeKeyValue(QLatin1StringView key, const QVariant& value);
     void writeKeyValue(QStringView key, const QVariant& value);
+    void writeKeyValue(QUtf8StringView key, const QVariant& value);
 
+    void writeString(QLatin1StringView s);
     void writeString(QStringView s);
+    void writeString(QUtf8StringView s);
     void writeRaw(const char *data, qint64 len);
     void writeRaw(const char *data);
     void writeRaw(const QByteArray &ba);
