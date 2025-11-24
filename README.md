@@ -90,6 +90,16 @@ The CBOR API mirrors the JSON writer (with `QCborVariantWriter`/`QCborVariantRea
 - `tests/json/tst_json.cpp` & `tests/cbor/tst_cbor.cpp` assert byte-for-byte parity with the official Qt JSON/CBOR helpers for a wide range of types (nulls, nested maps, `QDateTime`, Unicode, etc.).
 - `tests/benchmark/tst_benchmark.cpp` runs `QTest` benchmarks that compare QJsonVariant against `QJsonDocument`, `QCborValue`, Qt XML, `QDataStream`, and the streaming APIs on a 10k-task workload.
 
+| Format            | Serialization Time | Deserialization Time | Serialized Size |
+|-------------------|--------------------|----------------------|-----------------|
+| QDataStream       | 1 ms               | 1 ms                 | 1127 KB         |
+| XML               | 9.5 ms             | 25 ms                | 1757 KB         |
+| JSON              | 23 ms              | 9.7 ms               | 2005 KB         |
+| JsonVariantStream | 10 ms              | 5 ms                 | 2005 KB         |
+| CBOR              | 18 ms              | 33 ms                | 1511 KB         |
+| CBORStream        | 6.5 ms             | 6.2 ms               | 1690 KB         |
+| CBORVariantStream | 7.5 ms             | 6.7 ms               | 1690 KB         |
+
 ## Repository Layout
 ```
 src/                 library implementation + umbrella header
