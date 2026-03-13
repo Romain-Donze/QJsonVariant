@@ -14,110 +14,11 @@ static inline uchar hexdig(uint u)
 {
     return (u < 0xa ? '0' + u : 'a' + u - 0xa);
 }
-inline void escapedString(QIODevice *dev, QStringView s)
-{
-    if (!dev || s.isEmpty())
-        return;
-
-    constexpr qsizetype BufferSize = 1024;
-    char buffer[BufferSize];
-    char *cursor = buffer;
-
-    auto flushBuffer = [&]() {
-        if (cursor > buffer) {
-            dev->write(buffer, cursor - buffer);
-            cursor = buffer;
-        }
-    };
-
-    const char16_t *src = s.utf16();
-    const char16_t *end = src + s.size();
-
-    while (src != end) {
-        char16_t u = *src++;
-
-        if (u < 0x80) {
-            // ASCII
-            if (u < 0x20 || u == '"' || u == '\\') {
-                // Escape sequence, need up to 6 bytes (\u00XX)
-                if (cursor + 6 > buffer + BufferSize)
-                    flushBuffer();
-
-                *cursor++ = '\\';
-                switch (u) {
-                case '"':  *cursor++ = '"'; break;
-                case '\\': *cursor++ = '\\'; break;
-                case '\b': *cursor++ = 'b'; break;
-                case '\f': *cursor++ = 'f'; break;
-                case '\n': *cursor++ = 'n'; break;
-                case '\r': *cursor++ = 'r'; break;
-                case '\t': *cursor++ = 't'; break;
-                default:
-                    *cursor++ = 'u';
-                    *cursor++ = '0';
-                    *cursor++ = '0';
-                    *cursor++ = hexdig(u >> 4);
-                    *cursor++ = hexdig(u & 0xF);
-                    break;
-                }
-            } else {
-                // Regular ASCII
-                if (cursor == buffer + BufferSize)
-                    flushBuffer();
-                *cursor++ = static_cast<char>(u);
-            }
-        } else {
-            // Non-ASCII: UTF-8 encoding
-            char utf8[4];
-            int len = 0;
-
-            if (u >= 0xD800 && u <= 0xDBFF && src < end) {
-                // High surrogate
-                char16_t low = *src;
-                if (low >= 0xDC00 && low <= 0xDFFF) {
-                    ++src;
-                    char32_t cp = 0x10000 + (((u - 0xD800) << 10) | (low - 0xDC00));
-                    utf8[0] = 0xF0 | ((cp >> 18) & 0x07);
-                    utf8[1] = 0x80 | ((cp >> 12) & 0x3F);
-                    utf8[2] = 0x80 | ((cp >> 6) & 0x3F);
-                    utf8[3] = 0x80 | (cp & 0x3F);
-                    len = 4;
-                } else {
-                    u = 0xFFFD; // invalid surrogate
-                }
-            } else if (u >= 0xDC00 && u <= 0xDFFF) {
-                u = 0xFFFD; // lone low surrogate
-            }
-
-            if (len == 0) {
-                // BMP character
-                if (u <= 0x7FF) {
-                    utf8[0] = 0xC0 | ((u >> 6) & 0x1F);
-                    utf8[1] = 0x80 | (u & 0x3F);
-                    len = 2;
-                } else {
-                    utf8[0] = 0xE0 | ((u >> 12) & 0x0F);
-                    utf8[1] = 0x80 | ((u >> 6) & 0x3F);
-                    utf8[2] = 0x80 | (u & 0x3F);
-                    len = 3;
-                }
-            }
-
-            if (cursor + len > buffer + BufferSize)
-                flushBuffer();
-
-            for (int i = 0; i < len; ++i)
-                *cursor++ = utf8[i];
-        }
-    }
-
-    flushBuffer();
-}
 static inline QByteArray escapedString(QStringView s)
 {
-    QByteArray ba(qMax(s.size(), 16), Qt::Uninitialized);
+    QByteArray ba(std::max(s.size(), qsizetype(16)), Qt::Uninitialized);
     auto ba_const_start = [&]() { return reinterpret_cast<const uchar *>(ba.constData()); };
-    uchar *cursor = reinterpret_cast<uchar *>(const_cast<char *>(ba.constData()));
+    uchar *cursor = reinterpret_cast<uchar *>(ba.data());
     const uchar *ba_end = cursor + ba.size();
 
     const char16_t *src = s.utf16();
@@ -228,6 +129,27 @@ static inline QString unescapedString(const QByteArray &ba)
     const char *src = ba.constData();
     const char *end = src + ba.size();
 
+    auto hexValue = [](char c) -> int {
+        if (c >= '0' && c <= '9')
+            return c - '0';
+        if (c >= 'a' && c <= 'f')
+            return 10 + (c - 'a');
+        if (c >= 'A' && c <= 'F')
+            return 10 + (c - 'A');
+        return -1;
+    };
+
+    auto readHex4 = [&](const char *p, char16_t &out) -> bool {
+        int v0 = hexValue(p[0]);
+        int v1 = hexValue(p[1]);
+        int v2 = hexValue(p[2]);
+        int v3 = hexValue(p[3]);
+        if (v0 < 0 || v1 < 0 || v2 < 0 || v3 < 0)
+            return false;
+        out = static_cast<char16_t>((v0 << 12) | (v1 << 8) | (v2 << 4) | v3);
+        return true;
+    };
+
     while (src < end) {
         if (*src == '\\' && src + 1 < end) {
             ++src;
@@ -255,15 +177,23 @@ static inline QString unescapedString(const QByteArray &ba)
                 break;
             case 'u':
                 if (src + 4 < end) {
-                    bool ok = false;
-                    ushort u = QByteArray(src + 1, 4).toUShort(&ok, 16);
-                    if (ok) {
-                        decoded.append(QString(QChar(u)).toUtf8());
+                    char16_t first = 0;
+                    if (readHex4(src + 1, first)) {
+                        if (first >= 0xD800 && first <= 0xDBFF && src + 10 < end && src[5] == '\\' && src[6] == 'u') {
+                            char16_t second = 0;
+                            if (readHex4(src + 7, second) && second >= 0xDC00 && second <= 0xDFFF) {
+                                const char32_t cp = 0x10000u + ((char32_t(first - 0xD800) << 10) | char32_t(second - 0xDC00));
+                                decoded.append(QString::fromUcs4(&cp, 1).toUtf8());
+                                src += 10;
+                                break;
+                            }
+                        }
+
+                        decoded.append(QString::fromUtf16(&first, 1).toUtf8());
                         src += 4;
                         break;
                     }
                 }
-                // if not valid \uXXXX, fall through and treat literally
                 decoded.append('\\');
                 decoded.append('u');
                 break;

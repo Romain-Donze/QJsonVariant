@@ -19,7 +19,7 @@ static inline void stringToJson(QLatin1StringView string, QIODevice *d)
 static inline void stringToJson(QStringView string, QIODevice *d)
 {
     d->write("\"");
-    QUtf8::escapedString(d, string);
+    d->write(QUtf8::escapedString(string));
     d->write("\"");
 }
 static inline void stringToJson(QUtf8StringView string, QIODevice *d)

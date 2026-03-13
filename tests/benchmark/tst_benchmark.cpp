@@ -4,6 +4,7 @@
 #include "qjsonvariantreader.h"
 #include "qcborvariantwriter.h"
 #include "qcborvariantreader.h"
+#include "qutf8.h"
 
 #include "task_manager.h"
 
@@ -21,6 +22,11 @@ public:
 
 private slots:
     void initTestCase();
+
+    void benchmark_QJsonValue_String_toJson();
+    void benchmark_QJsonValue_String_fromJson();
+    void benchmark_QUtf8_String_toJson();
+    void benchmark_QUtf8_String_fromJson();
 
     void benchmark_QJsonDocument_fromJson();
     void benchmark_QJsonDocument_toVariant();
@@ -75,6 +81,41 @@ void TestBenchmark::initTestCase()
 #define SETUP_COMPACT \
     QByteArray& json = m_compact ? m_jsonCompact : m_jsonIndented; \
     QByteArray& cbor = m_compact ? m_cborCompact : m_cborIndented;
+
+#define UNESCAPED_STRING QString("Hello World")
+#define ESCAPED_STRING QByteArray("Hello World")
+
+void TestBenchmark::benchmark_QJsonValue_String_toJson()
+{
+    QBENCHMARK {
+        for(int i=0; i<1000000; i++)
+        QJsonValue(UNESCAPED_STRING).toJson();
+    }
+}
+
+void TestBenchmark::benchmark_QJsonValue_String_fromJson()
+{
+    QBENCHMARK {
+        for(int i=0; i<1000000; i++)
+        QJsonValue::fromJson(ESCAPED_STRING).toString();
+    }
+}
+
+void TestBenchmark::benchmark_QUtf8_String_toJson()
+{
+    QBENCHMARK {
+        for(int i=0; i<1000000; i++)
+        QUtf8::escapedString(UNESCAPED_STRING);
+    }
+}
+
+void TestBenchmark::benchmark_QUtf8_String_fromJson()
+{
+    QBENCHMARK {
+        for(int i=0; i<1000000; i++)
+        QUtf8::unescapedString(ESCAPED_STRING);
+    }
+}
 
 void TestBenchmark::benchmark_QJsonDocument_fromJson()
 {
