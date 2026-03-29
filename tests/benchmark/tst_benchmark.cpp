@@ -23,10 +23,12 @@ public:
 private slots:
     void initTestCase();
 
+#if QT_VERSION >= 0x060900
     void benchmark_QJsonValue_String_toJson();
     void benchmark_QJsonValue_String_fromJson();
     void benchmark_QUtf8_String_toJson();
     void benchmark_QUtf8_String_fromJson();
+#endif
 
     void benchmark_QJsonDocument_fromJson();
     void benchmark_QJsonDocument_toVariant();
@@ -82,6 +84,7 @@ void TestBenchmark::initTestCase()
     QByteArray& json = m_compact ? m_jsonCompact : m_jsonIndented; \
     QByteArray& cbor = m_compact ? m_cborCompact : m_cborIndented;
 
+#if QT_VERSION >= 0x060900
 #define UNESCAPED_STRING QString("Hello World")
 #define ESCAPED_STRING QByteArray("Hello World")
 
@@ -116,6 +119,7 @@ void TestBenchmark::benchmark_QUtf8_String_fromJson()
         QUtf8::unescapedString(ESCAPED_STRING);
     }
 }
+#endif
 
 void TestBenchmark::benchmark_QJsonDocument_fromJson()
 {
